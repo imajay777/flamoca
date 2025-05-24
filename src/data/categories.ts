@@ -36,11 +36,5 @@ export const categories: Category[] = [
     image: 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
     icon: 'shield',
   },
-  {
-    id: 'energy',
-    name: 'Energy & Vitality',
-    description: 'Superfoods that boost energy levels and overall vitality',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
-    icon: 'zap',
-  },
+  
 ];
