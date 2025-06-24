@@ -24,7 +24,7 @@ const AIResearchSearch: React.FC = () => {
     setResult(null);
     setError(null);
     try {
-      const response = await fetch('/api/gemini', {
+      const response = await fetch('/api/gemini-1.5-pro-latest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
