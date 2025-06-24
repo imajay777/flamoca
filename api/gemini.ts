@@ -39,10 +39,26 @@ export default async function handler(req: any, res: any) {
         }),
       }
     );
-    const data = await geminiRes.json();
+
+    const contentType = geminiRes.headers.get('content-type');
+    const rawText = await geminiRes.text();
+
     if (!geminiRes.ok) {
-      return res.status(geminiRes.status).json({ error: data.error?.message || 'Gemini API error.' });
+      let errorMsg = 'Gemini API error.';
+      try {
+        const errorJson = JSON.parse(rawText);
+        errorMsg = errorJson.error?.message || errorMsg;
+      } catch {
+        errorMsg = rawText || errorMsg;
+      }
+      return res.status(geminiRes.status).json({ error: errorMsg });
     }
+
+    if (!contentType || !contentType.includes('application/json')) {
+      return res.status(500).json({ error: 'Gemini API did not return JSON.', raw: rawText });
+    }
+
+    const data = JSON.parse(rawText);
     return res.status(200).json({ result: data?.candidates?.[0]?.content?.parts?.[0]?.text || null });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Internal server error.' });
