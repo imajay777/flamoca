@@ -1,12 +1,15 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { categories } from '../data/categories';
 import { superfoods } from '../data/superfoods';
 import CategoryCard from '../components/CategoryCard';
 import SuperfoodCard from '../components/SuperfoodCard';
+import AIResearchSearch from '../components/AIResearchSearch';
 
-export default function Home() {
+const Home: React.FC = () => {
   return (
     <div>
+      <AIResearchSearch />
       {/* Hero Section */}
       <section className="relative bg-purple-600 py-20 sm:py-24">
         <div className="absolute inset-0 overflow-hidden">
@@ -182,4 +185,6 @@ export default function Home() {
       </section>
     </div>
   );
-}
+};
+
+export default Home;
