@@ -24,11 +24,16 @@ const AIResearchSearch: React.FC = () => {
     setResult(null);
     setError(null);
     try {
-      const response = await fetch('/api/gemini-1.5-pro-latest', {
+      const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const rawText = await response.text();
+        throw new Error('Server did not return JSON. Raw response: ' + rawText);
+      }
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch from Gemini API.');

@@ -157,3 +157,53 @@ This will create optimized files in the `dist` folder, ready for deployment.
 - Netlify Support: [https://www.netlify.com/support/](https://www.netlify.com/support/)
 - Vercel Support: [https://vercel.com/help](https://vercel.com/help)
 - GoDaddy Support: [https://www.godaddy.com/help](https://www.godaddy.com/help)
+
+---
+
+The error `405 Method Not Allowed` means that the endpoint `/api/gemini-1.5-pro-latest` does not exist or is not set up to handle POST requests.
+
+### Here’s what’s happening:
+- Your frontend is making a POST request to `/api/gemini-1.5-pro-latest`
+- But your backend function is actually at `/api/gemini`
+- So, Vercel returns a 405 error because there is no `/api/gemini-1.5-pro-latest` endpoint
+
+---
+
+## **How to Fix**
+
+### 1. **Update the Frontend Endpoint**
+
+In your `AIResearchSearch.tsx`, make sure the fetch call is:
+```js
+<code_block_to_apply_changes_from>
+```
+**NOT** `/api/gemini-1.5-pro-latest`.
+
+---
+
+### 2. **Check Your Code**
+
+If you see `/api/gemini-1.5-pro-latest` anywhere in your frontend, change it to `/api/gemini`.
+
+---
+
+### 3. **Deploy the Fix**
+
+- Save the file.
+- Commit and push your changes.
+- Redeploy your site.
+
+---
+
+## **Summary Table**
+
+| What you want           | What you have now                | What to change to         |
+|-------------------------|----------------------------------|--------------------------|
+| API endpoint (frontend) | `/api/gemini-1.5-pro-latest`     | `/api/gemini`            |
+| API endpoint (backend)  | `/api/gemini`                    | `/api/gemini`            |
+
+---
+
+**Once you do this, your search should work (or you’ll get a more helpful error from Gemini).**
+
+Let me know if you want me to make this change for you!
