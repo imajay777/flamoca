@@ -2,14 +2,6 @@
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-const CATEGORIES = [
-  'Brain Health',
-  'Heart Health',
-  'Skin Health',
-  'Digestive Health',
-  'Immune System',
-];
-
 export default async function handler(req: any, res: any) {
   console.log('Function called');
   if (req.method !== 'POST') {
@@ -29,7 +21,23 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Missing or invalid query.' });
   }
 
-  const prompt = `For the food item "${query}", provide:\n- A summary of research-backed facts.\n- Nutrition information (as bullet points).\n- Classify it under one or more of these categories: ${CATEGORIES.join(", ")}.\nAlways include all three sections, even if you have to say 'Not enough data' for any section.\nRespond in this format:\n- Summary: ...\n- Nutrition: ...\n- Category: ...`;
+  const prompt = `You are a nutrition-focused AI assistant. Answer the following user question using only credible research papers, clinical studies, or articles published in peer-reviewed journals and reputable medical or government health sources (e.g., PubMed, WHO, NIH, Mayo Clinic).
+
+Rules:
+1. Search for recent and relevant research papers (preferably from the last 5–10 years).
+2. Tailor the information to the specific user context (e.g., the food item or nutrition topic they are searching for).
+3. Present your answer in a clear, structured format: a short introduction, bullet points of benefits, and any precautions.
+4. Always include inline citations that refer to each source used, in the format [1], [2], etc.
+5. At the end, include a "Sources" section listing all references with the full title, author (if available), year, and a link to the source (preferably DOI or official site).
+6. Do not include speculative or unverified information. Only use evidence-based data.
+7. If there is not enough evidence for a food or supplement, clearly state that and mention any limitations in available studies.
+8. If you cannot find any credible information, say: "There is currently limited peer-reviewed research specifically addressing this topic."
+
+Preferred sources: PubMed, Google Scholar, academic articles, government health agencies.
+
+Citation format: Inline [1], and expanded in a "Sources" section.
+
+User question: "${query}"`;
 
   try {
     const geminiRes = await fetch(

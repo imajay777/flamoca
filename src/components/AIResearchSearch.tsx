@@ -1,76 +1,76 @@
 import React, { useState } from 'react';
 
-const CATEGORY_LIST = [
-  'Brain Health',
-  'Heart Health',
-  'Skin Health',
-  'Digestive Health',
-  'Immune System',
-];
-
-const CATEGORY_ICONS: Record<string, string> = {
-  'Brain Health': '🧠',
-  'Heart Health': '❤️',
-  'Skin Health': '✨',
-  'Digestive Health': '🍏',
-  'Immune System': '🛡️',
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  'Brain Health': 'bg-purple-100 text-purple-800 border-purple-300',
-  'Heart Health': 'bg-red-100 text-red-800 border-red-300',
-  'Skin Health': 'bg-pink-100 text-pink-800 border-pink-300',
-  'Digestive Health': 'bg-green-100 text-green-800 border-green-300',
-  'Immune System': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-};
-
-const SECTION_ICONS: Record<string, string> = {
-  Summary: '📝',
-  Nutrition: '🥗',
-  Category: '🏷️',
-};
-
 const AIResearchSearch: React.FC = () => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [openSections, setOpenSections] = useState({
-    Summary: true,
-    Nutrition: true,
-    Category: true,
-  });
 
-  // Helper to parse the AI response into sections
-  function parseResult(text: string) {
-    const summaryMatch = text.match(/- Summary:(.*?)(- Nutrition:|$)/s);
-    const nutritionMatch = text.match(/- Nutrition:(.*?)(- Category:|$)/s);
-    const categoryMatch = text.match(/- Category:(.*)/s);
-    const nutrition = nutritionMatch ? nutritionMatch[1].trim() : '';
-    // Parse nutrition into bullet points if possible
-    const nutritionBullets = nutrition
-      .split(/\n|\r/)
-      .map(line => line.trim())
-      .filter(line => line.startsWith('*') || line.startsWith('-'))
-      .map(line => line.replace(/^[-*]\s*/, ''));
-    // Parse categories as chips and details
-    let categories: string[] = [];
-    let categoryDetails = '';
-    if (categoryMatch) {
-      // Try to extract just the category names (if comma separated)
-      const catLine = categoryMatch[1].replace(/\n/g, '').trim();
-      // If the line contains all categories, extract them
-      categories = CATEGORY_LIST.filter(cat => catLine.includes(cat));
-      // Remove category names from the details to avoid duplication
-      categoryDetails = catLine.replace(new RegExp(categories.join('|'), 'g'), match => `**${match}**`);
+  // Parse Gemini's research-assistant style output
+  function parseResearchOutput(text: string) {
+    // Split out the Sources section
+    const [main, sourcesRaw] = text.split(/\n+Sources:?/i);
+    // Find all inline citations [1], [2], etc.
+    const citationRegex = /\[(\d+)\]/g;
+    // Extract intro (first paragraph)
+    const introMatch = main.match(/^(.*?)(\n|$)/s);
+    const intro = introMatch ? introMatch[1].trim() : '';
+    // Extract bullet points (lines starting with * or -)
+    const bulletRegex = /^(?:\*|-)[ \t]+(.+)/gm;
+    const bullets = [];
+    let m;
+    while ((m = bulletRegex.exec(main))) {
+      bullets.push(m[1]);
     }
-    return {
-      summary: summaryMatch ? summaryMatch[1].trim() : '',
-      nutrition,
-      nutritionBullets,
-      categories,
-      categoryDetails: categoryDetails.trim(),
-    };
+    // Extract precautions (look for a line starting with 'Precautions:' or similar)
+    const precautionsMatch = main.match(/Precautions?:\s*(.*)/i);
+    const precautions = precautionsMatch ? precautionsMatch[1].trim() : '';
+    // Parse sources
+    let sources: { idx: string; text: string }[] = [];
+    if (sourcesRaw) {
+      sources = sourcesRaw
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const idxMatch = line.match(/^\[(\d+)\]/);
+          return idxMatch ? { idx: idxMatch[1], text: line } : null;
+        })
+        .filter(Boolean) as { idx: string; text: string }[];
+    }
+    return { intro, bullets, precautions, sources, main };
+  }
+
+  // Helper to render inline citations as superscript links
+  function renderWithCitations(text: string, sources: { idx: string; text: string }[]) {
+    return text.split(/(\[\d+\])/g).map((part, i) => {
+      const match = part.match(/^\[(\d+)\]$/);
+      if (match) {
+        const idx = match[1];
+        const source = sources.find(s => s.idx === idx);
+        return source ? (
+          <sup key={i} className="mx-0.5">
+            <a
+              href={extractUrlFromSource(source.text) || '#sources'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              [{idx}]
+            </a>
+          </sup>
+        ) : (
+          <sup key={i}>[{idx}]</sup>
+        );
+      }
+      return part;
+    });
+  }
+
+  // Try to extract a URL from a source line
+  function extractUrlFromSource(source: string) {
+    const urlMatch = source.match(/https?:\/\/\S+/);
+    return urlMatch ? urlMatch[0] : '';
   }
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -101,22 +101,7 @@ const AIResearchSearch: React.FC = () => {
     }
   };
 
-  // Helper to render markdown-style bold (**text**) in category details
-  function renderMarkdownBold(text: string) {
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    return parts.map((part, idx) => {
-      if (/^\*\*[^*]+\*\*$/.test(part)) {
-        return <strong key={idx}>{part.replace(/\*\*/g, '')}</strong>;
-      }
-      return <span key={idx}>{part}</span>;
-    });
-  }
-
-  function toggleSection(section: keyof typeof openSections) {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-  }
-
-  const parsed = result ? parseResult(result) : null;
+  const parsed = result ? parseResearchOutput(result) : null;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-gradient-to-br from-purple-50 to-green-50 rounded-2xl shadow-lg mb-8 mt-6">
@@ -125,7 +110,7 @@ const AIResearchSearch: React.FC = () => {
         <input
           type="text"
           className="flex-1 border-2 border-green-400 focus:border-purple-500 rounded-xl px-4 py-3 text-lg shadow-sm focus:outline-none transition"
-          placeholder="Search for any food item..."
+          placeholder="Ask about any food, nutrient, or health benefit..."
           value={query}
           onChange={e => setQuery(e.target.value)}
           required
@@ -141,100 +126,56 @@ const AIResearchSearch: React.FC = () => {
       {error && <div className="text-red-600 mb-4 text-center font-medium">{error}</div>}
       {parsed && (
         <div className="space-y-6 mt-2">
-          {/* Summary Card */}
-          <div className="bg-white/90 rounded-2xl shadow-md border-l-8 border-purple-300">
-            <button
-              type="button"
-              className="w-full flex items-center justify-between px-6 py-4 focus:outline-none group"
-              onClick={() => toggleSection('Summary')}
-              aria-expanded={openSections.Summary}
-            >
-              <span className="flex items-center gap-3 text-xl font-bold text-purple-700">
-                <span className="text-2xl">{SECTION_ICONS.Summary}</span> Summary
-              </span>
-              <span className="ml-2 text-lg transition-transform duration-200 group-aria-expanded:rotate-180">
-                {openSections.Summary ? '▼' : '►'}
-              </span>
-            </button>
-            <div
-              className={`overflow-hidden transition-all duration-300 ${openSections.Summary ? 'max-h-[500px] p-6 pt-0 opacity-100' : 'max-h-0 p-0 opacity-0'}`}
-            >
+          {/* Intro */}
+          {parsed.intro && (
+            <div className="bg-white/90 rounded-2xl shadow-md p-6 border-l-8 border-purple-300">
+              <h3 className="text-xl font-bold text-purple-700 mb-2 flex items-center gap-2">
+                <span>Overview</span>
+              </h3>
               <p className="text-gray-800 whitespace-pre-line leading-relaxed">
-                {parsed.summary ? parsed.summary : 'Not enough data'}
+                {renderWithCitations(parsed.intro, parsed.sources)}
               </p>
             </div>
-          </div>
-          {/* Nutrition Card */}
-          <div className="bg-white/90 rounded-2xl shadow-md border-l-8 border-green-300">
-            <button
-              type="button"
-              className="w-full flex items-center justify-between px-6 py-4 focus:outline-none group"
-              onClick={() => toggleSection('Nutrition')}
-              aria-expanded={openSections.Nutrition}
-            >
-              <span className="flex items-center gap-3 text-xl font-bold text-green-700">
-                <span className="text-2xl">{SECTION_ICONS.Nutrition}</span> Nutrition
-              </span>
-              <span className="ml-2 text-lg transition-transform duration-200 group-aria-expanded:rotate-180">
-                {openSections.Nutrition ? '▼' : '►'}
-              </span>
-            </button>
-            <div
-              className={`overflow-hidden transition-all duration-300 ${openSections.Nutrition ? 'max-h-[500px] p-6 pt-0 opacity-100' : 'max-h-0 p-0 opacity-0'}`}
-            >
-              {parsed.nutritionBullets.length > 0 ? (
-                <ul className="list-disc pl-6 text-gray-800 space-y-1">
-                  {parsed.nutritionBullets.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-800 whitespace-pre-line">
-                  {parsed.nutrition ? parsed.nutrition : 'Not enough data'}
-                </p>
-              )}
+          )}
+          {/* Bullet Points */}
+          {parsed.bullets.length > 0 && (
+            <div className="bg-white/90 rounded-2xl shadow-md p-6 border-l-8 border-green-300">
+              <h3 className="text-xl font-bold text-green-700 mb-2 flex items-center gap-2">
+                <span>Key Points</span>
+              </h3>
+              <ul className="list-disc pl-6 text-gray-800 space-y-1">
+                {parsed.bullets.map((item, idx) => (
+                  <li key={idx}>{renderWithCitations(item, parsed.sources)}</li>
+                ))}
+              </ul>
             </div>
-          </div>
-          {/* Category Chips and Details */}
-          <div className="bg-white/90 rounded-2xl shadow-md border-l-8 border-yellow-300">
-            <button
-              type="button"
-              className="w-full flex items-center justify-between px-6 py-4 focus:outline-none group"
-              onClick={() => toggleSection('Category')}
-              aria-expanded={openSections.Category}
-            >
-              <span className="flex items-center gap-3 text-xl font-bold text-yellow-700">
-                <span className="text-2xl">{SECTION_ICONS.Category}</span> Category
-              </span>
-              <span className="ml-2 text-lg transition-transform duration-200 group-aria-expanded:rotate-180">
-                {openSections.Category ? '▼' : '►'}
-              </span>
-            </button>
-            <div
-              className={`overflow-hidden transition-all duration-300 ${openSections.Category ? 'max-h-[500px] p-6 pt-0 opacity-100' : 'max-h-0 p-0 opacity-0'}`}
-            >
-              <div className="flex flex-wrap gap-2 mb-3">
-                {parsed.categories.length > 0 ? (
-                  parsed.categories.map((cat, idx) => (
-                    <span
-                      key={idx}
-                      className={`flex items-center gap-1 px-4 py-1 rounded-full border text-sm font-semibold shadow-sm ${CATEGORY_COLORS[cat] || 'bg-gray-100 text-gray-800 border-gray-300'}`}
-                    >
-                      <span className="text-lg mr-1">{CATEGORY_ICONS[cat] || '🏷️'}</span>
-                      {cat}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-gray-700">Not enough data</span>
-                )}
-              </div>
-              {parsed.categoryDetails && (
-                <div className="text-gray-800 whitespace-pre-line leading-relaxed text-base">
-                  {renderMarkdownBold(parsed.categoryDetails)}
-                </div>
-              )}
+          )}
+          {/* Precautions */}
+          {parsed.precautions && (
+            <div className="bg-white/90 rounded-2xl shadow-md p-6 border-l-8 border-yellow-300">
+              <h3 className="text-xl font-bold text-yellow-700 mb-2 flex items-center gap-2">
+                <span>Precautions</span>
+              </h3>
+              <p className="text-gray-800 whitespace-pre-line leading-relaxed">
+                {renderWithCitations(parsed.precautions, parsed.sources)}
+              </p>
             </div>
-          </div>
+          )}
+          {/* Sources */}
+          {parsed.sources.length > 0 && (
+            <div className="bg-white/90 rounded-2xl shadow-md p-6 border-l-8 border-blue-300">
+              <h3 className="text-xl font-bold text-blue-700 mb-2 flex items-center gap-2">
+                <span>Sources</span>
+              </h3>
+              <ul className="list-decimal pl-6 text-gray-800 space-y-2">
+                {parsed.sources.map((src, idx) => (
+                  <li key={idx} className="break-words">
+                    {src.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </div>
