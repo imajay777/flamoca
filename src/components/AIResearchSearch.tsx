@@ -10,8 +10,6 @@ const AIResearchSearch: React.FC = () => {
   function parseResearchOutput(text: string) {
     // Split out the Sources section
     const [main, sourcesRaw] = text.split(/\n+Sources:?/i);
-    // Find all inline citations [1], [2], etc.
-    const citationRegex = /\[(\d+)\]/g;
     // Extract intro (first paragraph)
     const introMatch = main.match(/^(.*?)(\n|$)/s);
     const intro = introMatch ? introMatch[1].trim() : '';
