@@ -1,15 +1,32 @@
 import React, { useState } from 'react';
 
+const CATEGORY_ICONS: Record<string, string> = {
+  'Brain Health': '🧠',
+  'Heart Health': '❤️',
+  'Skin Health': '✨',
+  'Digestive Health': '🍏',
+  'Immune System': '🛡️',
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'Brain Health': 'bg-purple-100 text-purple-800 border-purple-300',
+  'Heart Health': 'bg-red-100 text-red-800 border-red-300',
+  'Skin Health': 'bg-pink-100 text-pink-800 border-pink-300',
+  'Digestive Health': 'bg-green-100 text-green-800 border-green-300',
+  'Immune System': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+};
+
 const AIResearchSearch: React.FC = () => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Parse Gemini's research-assistant style output
   function parseResearchOutput(text: string) {
-    // Split out the Sources section
-    const [main, sourcesRaw] = text.split(/\n+Sources:?/i);
+    // Split out the Sources or References section
+    const [main, sourcesRaw] = text.split(/\n+(Sources|References)[:]?/i);
     // Extract intro (first paragraph)
     const introMatch = main.match(/^(.*?)(\n|$)/s);
     const intro = introMatch ? introMatch[1].trim() : '';
@@ -65,16 +82,42 @@ const AIResearchSearch: React.FC = () => {
     });
   }
 
-  // Try to extract a URL from a source line
+  // Try to extract a URL or DOI from a source line
   function extractUrlFromSource(source: string) {
     const urlMatch = source.match(/https?:\/\/\S+/);
-    return urlMatch ? urlMatch[0] : '';
+    if (urlMatch) return urlMatch[0];
+    // Try DOI
+    const doiMatch = source.match(/doi:\s*(10\.\d{4,9}\/[-._;()\/:A-Z0-9]+)/i);
+    if (doiMatch) return `https://doi.org/${doiMatch[1]}`;
+    return '';
+  }
+
+  // Parse a source line for title, author, year, and url
+  function parseSourceDetails(source: string) {
+    const url = extractUrlFromSource(source);
+    const yearMatch = source.match(/(19|20)\d{2}/);
+    const year = yearMatch ? yearMatch[0] : '';
+    const titleMatch = source.match(/\.?\s*([^\.]*)\.?\s*(https?:\/\/|doi:|$)/i);
+    let title = titleMatch ? titleMatch[1].trim() : '';
+    let author = '';
+    const authorMatch = source.match(/\]\s*([^,]+),?\s*(19|20)\d{2}/);
+    if (authorMatch) author = authorMatch[1].trim();
+    if (!title) title = '(details unavailable)';
+    return { url, year, title, author };
+  }
+
+  function isRecent(year: string) {
+    const y = parseInt(year, 10);
+    if (!y) return false;
+    const now = new Date().getFullYear();
+    return y >= now - 5;
   }
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
+    setCategories([]);
     setError(null);
     try {
       const response = await fetch('/api/gemini', {
@@ -92,6 +135,7 @@ const AIResearchSearch: React.FC = () => {
         throw new Error(data.error || 'Failed to fetch from Gemini API.');
       }
       setResult(data.result);
+      setCategories(data.categories || []);
     } catch (err: any) {
       setError(err.message || 'An error occurred.');
     } finally {
@@ -122,6 +166,20 @@ const AIResearchSearch: React.FC = () => {
         </button>
       </form>
       {error && <div className="text-red-600 mb-4 text-center font-medium">{error}</div>}
+      {/* Category Chips */}
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-6 justify-center">
+          {categories.map((cat, idx) => (
+            <span
+              key={idx}
+              className={`flex items-center gap-1 px-4 py-1 rounded-full border text-sm font-semibold shadow-sm ${CATEGORY_COLORS[cat] || 'bg-gray-100 text-gray-800 border-gray-300'}`}
+            >
+              <span className="text-lg mr-1">{CATEGORY_ICONS[cat] || '🏷️'}</span>
+              {cat}
+            </span>
+          ))}
+        </div>
+      )}
       {parsed && (
         <div className="space-y-6 mt-2">
           {/* Intro */}
@@ -166,11 +224,39 @@ const AIResearchSearch: React.FC = () => {
                 <span>Sources</span>
               </h3>
               <ul className="list-decimal pl-6 text-gray-800 space-y-2">
-                {parsed.sources.map((src, idx) => (
-                  <li key={idx} className="break-words">
-                    {src.text}
-                  </li>
-                ))}
+                {parsed.sources.map((src, idx) => {
+                  const details = parseSourceDetails(src.text);
+                  return (
+                    <li key={idx} className="break-words flex flex-col gap-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold">{details.title}</span>
+                        {details.year && (
+                          <span className="text-gray-600">({details.year})</span>
+                        )}
+                        {details.author && (
+                          <span className="italic text-gray-500">{details.author}</span>
+                        )}
+                        {isRecent(details.year) && (
+                          <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full ml-1">Recent</span>
+                        )}
+                        {details.url && (
+                          <a
+                            href={details.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline hover:text-blue-800 flex items-center gap-1"
+                          >
+                            <span>Link</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 015.656 5.656l-3.535 3.535a4 4 0 01-5.656-5.656m1.414-1.414a4 4 0 015.656 5.656" /></svg>
+                          </a>
+                        )}
+                      </div>
+                      {!details.title && (
+                        <span className="text-gray-400 text-sm">(details unavailable)</span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

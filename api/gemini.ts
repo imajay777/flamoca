@@ -2,26 +2,30 @@
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+const CATEGORIES = [
+  'Brain Health',
+  'Heart Health',
+  'Skin Health',
+  'Digestive Health',
+  'Immune System',
+];
+
 export default async function handler(req: any, res: any) {
-  console.log('Function called');
   if (req.method !== 'POST') {
-    console.log('Method not allowed');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   if (!GEMINI_API_KEY) {
-    console.log('Missing GEMINI_API_KEY');
     return res.status(500).json({ error: 'Gemini API key not set in environment variables.' });
   }
 
   const { query } = req.body;
-  console.log('Query:', query);
   if (!query || typeof query !== 'string') {
-    console.log('Missing or invalid query');
     return res.status(400).json({ error: 'Missing or invalid query.' });
   }
 
-  const prompt = `You are a nutrition-focused AI assistant. Answer the following user question using only credible research papers, clinical studies, or articles published in peer-reviewed journals and reputable medical or government health sources (e.g., PubMed, WHO, NIH, Mayo Clinic).
+  // Prompt 1: Research answer
+  const researchPrompt = `You are a nutrition-focused AI assistant. Answer the following user question using only credible research papers, clinical studies, or articles published in peer-reviewed journals and reputable medical or government health sources (e.g., PubMed, WHO, NIH, Mayo Clinic).
 
 Rules:
 1. Search for recent and relevant research papers (preferably from the last 5–10 years).
@@ -39,6 +43,9 @@ Citation format: Inline [1], and expanded in a "Sources" section.
 
 User question: "${query}"`;
 
+  // Prompt 2: Category classification
+  const categoryPrompt = `Based on the above answer, which of these categories does this food or nutrient most benefit? [${CATEGORIES.join(", ")}]. Respond with a comma-separated list of categories only, no explanation.`;
+
   try {
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -48,14 +55,16 @@ User question: "${query}"`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [
+            { parts: [{ text: researchPrompt }] },
+            { parts: [{ text: categoryPrompt }] },
+          ],
         }),
       }
     );
 
     const contentType = geminiRes.headers.get('content-type');
     const rawText = await geminiRes.text();
-    console.log('Gemini API response:', rawText);
 
     if (!geminiRes.ok) {
       let errorMsg = 'Gemini API error.';
@@ -73,9 +82,17 @@ User question: "${query}"`;
     }
 
     const data = JSON.parse(rawText);
-    return res.status(200).json({ result: data?.candidates?.[0]?.content?.parts?.[0]?.text || null });
+    // Gemini returns an array of candidates, one for each prompt
+    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    const categoriesRaw = data?.candidates?.[1]?.content?.parts?.[0]?.text || '';
+    // Parse categories as an array
+    const categories = categoriesRaw
+      .split(',')
+      .map(c => c.trim())
+      .filter(Boolean);
+
+    return res.status(200).json({ result: answer, categories });
   } catch (err: any) {
-    console.log('Catch error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error.' });
   }
 } 
