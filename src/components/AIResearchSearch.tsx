@@ -159,7 +159,9 @@ const AIResearchSearch: React.FC = () => {
             <div
               className={`overflow-hidden transition-all duration-300 ${openSections.Summary ? 'max-h-[500px] p-6 pt-0 opacity-100' : 'max-h-0 p-0 opacity-0'}`}
             >
-              <p className="text-gray-800 whitespace-pre-line leading-relaxed">{parsed.summary}</p>
+              <p className="text-gray-800 whitespace-pre-line leading-relaxed">
+                {parsed.summary ? parsed.summary : 'Not enough data'}
+              </p>
             </div>
           </div>
           {/* Nutrition Card */}
@@ -187,7 +189,9 @@ const AIResearchSearch: React.FC = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="text-gray-800 whitespace-pre-line">{parsed.nutrition}</p>
+                <p className="text-gray-800 whitespace-pre-line">
+                  {parsed.nutrition ? parsed.nutrition : 'Not enough data'}
+                </p>
               )}
             </div>
           </div>
@@ -221,7 +225,7 @@ const AIResearchSearch: React.FC = () => {
                     </span>
                   ))
                 ) : (
-                  <span className="text-gray-700">No category found</span>
+                  <span className="text-gray-700">Not enough data</span>
                 )}
               </div>
               {parsed.categoryDetails && (

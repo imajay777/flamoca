@@ -29,7 +29,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Missing or invalid query.' });
   }
 
-  const prompt = `For the food item "${query}", provide a summary of research-backed facts and nutritional information. Then, classify it under one or more of these categories: ${CATEGORIES.join(", ")}. Respond in this format:\n- Summary: ...\n- Nutrition: ...\n- Category: ...`;
+  const prompt = `For the food item "${query}", provide:\n- A summary of research-backed facts.\n- Nutrition information (as bullet points).\n- Classify it under one or more of these categories: ${CATEGORIES.join(", ")}.\nAlways include all three sections, even if you have to say 'Not enough data' for any section.\nRespond in this format:\n- Summary: ...\n- Nutrition: ...\n- Category: ...`;
 
   try {
     const geminiRes = await fetch(
