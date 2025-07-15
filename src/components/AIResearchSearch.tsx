@@ -43,6 +43,7 @@ const AIResearchSearch: React.FC = () => {
     // Parse sources
     let sources: { idx: string; text: string }[] = [];
     if (sourcesRaw) {
+      // Try [1] style first
       sources = sourcesRaw
         .split(/\n+/)
         .map(line => line.trim())
@@ -52,6 +53,18 @@ const AIResearchSearch: React.FC = () => {
           return idxMatch ? { idx: idxMatch[1], text: line } : null;
         })
         .filter(Boolean) as { idx: string; text: string }[];
+      // If no [1] style found, try Markdown numbered list (1. ...)
+      if (sources.length === 0) {
+        sources = sourcesRaw
+          .split(/\n+/)
+          .map(line => line.trim())
+          .filter(line => /^\d+\.\s+/.test(line))
+          .map(line => {
+            const idxMatch = line.match(/^(\d+)\./);
+            return idxMatch ? { idx: idxMatch[1], text: line.replace(/^(\d+)\.\s*/, `[${idxMatch[1]}] `) } : null;
+          })
+          .filter(Boolean) as { idx: string; text: string }[];
+      }
     }
     return { intro, bullets, precautions, sources, main };
   }
