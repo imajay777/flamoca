@@ -113,6 +113,23 @@ const AIResearchSearch: React.FC = () => {
     return y >= now - 5;
   }
 
+  // Render a key point bullet with improved heading style
+  function renderKeyPointBullet(bullet: string, sources: { idx: string; text: string }[]) {
+    // Match **Heading:** at the start
+    const headingMatch = bullet.match(/^\*\*(.+?):\*\*\s*(.*)$/);
+    if (headingMatch) {
+      const heading = headingMatch[1];
+      const rest = headingMatch[2];
+      return (
+        <span>
+          <span className="font-bold text-green-700 mr-1">{heading}:</span>
+          <span>{renderWithCitations(rest, sources)}</span>
+        </span>
+      );
+    }
+    return renderWithCitations(bullet, sources);
+  }
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -201,7 +218,7 @@ const AIResearchSearch: React.FC = () => {
               </h3>
               <ul className="list-disc pl-6 text-gray-800 space-y-1">
                 {parsed.bullets.map((item, idx) => (
-                  <li key={idx}>{renderWithCitations(item, parsed.sources)}</li>
+                  <li key={idx}>{renderKeyPointBullet(item, parsed.sources)}</li>
                 ))}
               </ul>
             </div>
