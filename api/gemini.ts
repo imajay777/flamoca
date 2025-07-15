@@ -56,8 +56,8 @@ User question: "${query}"`;
         },
         body: JSON.stringify({
           contents: [
-            { parts: [{ text: researchPrompt }] },
-            { parts: [{ text: categoryPrompt }] },
+            { role: 'user', parts: [{ text: researchPrompt }] },
+            { role: 'user', parts: [{ text: categoryPrompt }] },
           ],
         }),
       }
