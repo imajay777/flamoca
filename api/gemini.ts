@@ -11,16 +11,21 @@ const CATEGORIES = [
 ];
 
 export default async function handler(req: any, res: any) {
+  console.log('Function called');
   if (req.method !== 'POST') {
+    console.log('Method not allowed');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   if (!GEMINI_API_KEY) {
+    console.log('Missing GEMINI_API_KEY');
     return res.status(500).json({ error: 'Gemini API key not set in environment variables.' });
   }
 
   const { query } = req.body;
+  console.log('Query:', query);
   if (!query || typeof query !== 'string') {
+    console.log('Missing or invalid query');
     return res.status(400).json({ error: 'Missing or invalid query.' });
   }
 
@@ -28,7 +33,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
@@ -42,6 +47,7 @@ export default async function handler(req: any, res: any) {
 
     const contentType = geminiRes.headers.get('content-type');
     const rawText = await geminiRes.text();
+    console.log('Gemini API response:', rawText);
 
     if (!geminiRes.ok) {
       let errorMsg = 'Gemini API error.';
@@ -61,6 +67,7 @@ export default async function handler(req: any, res: any) {
     const data = JSON.parse(rawText);
     return res.status(200).json({ result: data?.candidates?.[0]?.content?.parts?.[0]?.text || null });
   } catch (err: any) {
+    console.log('Catch error:', err);
     return res.status(500).json({ error: err.message || 'Internal server error.' });
   }
 } 
