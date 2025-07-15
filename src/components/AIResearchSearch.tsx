@@ -130,6 +130,17 @@ const AIResearchSearch: React.FC = () => {
     return renderWithCitations(bullet, sources);
   }
 
+  // Helper to check if there are inline citations in the answer
+  function hasInlineCitations(parsed: any) {
+    // Check intro, bullets, and main for [1], [2], etc.
+    const citationRegex = /\[\d+\]/;
+    return (
+      (parsed.intro && citationRegex.test(parsed.intro)) ||
+      (parsed.bullets && parsed.bullets.some((b: string) => citationRegex.test(b))) ||
+      (parsed.main && citationRegex.test(parsed.main))
+    );
+  }
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -275,6 +286,12 @@ const AIResearchSearch: React.FC = () => {
                   );
                 })}
               </ul>
+            </div>
+          )}
+          {/* Fallback for missing sources but citations present */}
+          {parsed.sources.length === 0 && hasInlineCitations(parsed) && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl text-yellow-800 text-base font-medium">
+              No sources were provided by the AI for the above citations.
             </div>
           )}
         </div>
