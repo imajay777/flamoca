@@ -10,6 +10,31 @@ const CATEGORIES = [
   'Immune System',
 ];
 
+const CATEGORY_KEYWORDS = {
+  'Brain Health': [
+    'brain', 'cognitive', 'memory', 'focus', 'neuro', 'dementia', 'alzheimer', 'mental', 'neurological', 'cognition', 'parkinson', 'learning', 'attention'
+  ],
+  'Heart Health': [
+    'heart', 'cardiovascular', 'cholesterol', 'blood pressure', 'artery', 'stroke', 'circulation', 'hypertension', 'hdl', 'ldl', 'triglyceride', 'vascular'
+  ],
+  'Skin Health': [
+    'skin', 'collagen', 'elasticity', 'anti-aging', 'acne', 'complexion', 'wrinkle', 'dermatitis', 'eczema', 'psoriasis', 'glow', 'hydration'
+  ],
+  'Digestive Health': [
+    'gut', 'digestion', 'fiber', 'microbiome', 'bowel', 'probiotic', 'constipation', 'digestive', 'prebiotic', 'stool', 'intestinal', 'colon', 'diarrhea'
+  ],
+  'Immune System': [
+    'immune', 'immunity', 'infection', 'inflammation', 'antibody', 'virus', 'bacteria', 'defense', 'lymphocyte', 't cell', 'b cell', 'pathogen', 'resistance'
+  ],
+};
+
+function classifyCategories(text) {
+  const lower = text.toLowerCase();
+  return CATEGORIES.filter(cat =>
+    CATEGORY_KEYWORDS[cat].some(keyword => lower.includes(keyword))
+  );
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -24,7 +49,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Missing or invalid query.' });
   }
 
-  // Prompt 1: Research answer
+  // Prompt: Research answer
   const researchPrompt = `You are a nutrition-focused AI assistant. Answer the following user question using only credible research papers, clinical studies, or articles published in peer-reviewed journals and reputable medical or government health sources (e.g., PubMed, WHO, NIH, Mayo Clinic).
 
 Rules:
@@ -43,9 +68,6 @@ Citation format: Inline [1], and expanded in a "Sources" section.
 
 User question: "${query}"`;
 
-  // Prompt 2: Category classification
-  const categoryPrompt = `Based on the above answer, which of these categories does this food or nutrient most benefit? [${CATEGORIES.join(", ")}]. Respond with a comma-separated list of categories only, no explanation.`;
-
   try {
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -57,7 +79,6 @@ User question: "${query}"`;
         body: JSON.stringify({
           contents: [
             { role: 'user', parts: [{ text: researchPrompt }] },
-            { role: 'user', parts: [{ text: categoryPrompt }] },
           ],
         }),
       }
@@ -82,14 +103,8 @@ User question: "${query}"`;
     }
 
     const data = JSON.parse(rawText);
-    // Gemini returns an array of candidates, one for each prompt
     const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-    const categoriesRaw = data?.candidates?.[1]?.content?.parts?.[0]?.text || '';
-    // Parse categories as an array
-    const categories = categoriesRaw
-      .split(',')
-      .map(c => c.trim())
-      .filter(Boolean);
+    const categories = answer ? classifyCategories(answer) : [];
 
     return res.status(200).json({ result: answer, categories });
   } catch (err: any) {
