@@ -25,8 +25,8 @@ const AIResearchSearch: React.FC = () => {
 
   // Parse Gemini's research-assistant style output
   function parseResearchOutput(text: string) {
-    // Split out the Sources or References section
-    const [main, sourcesRaw] = text.split(/\n+(Sources|References)[:]?/i);
+    // Split out the Sources, References, or Markdown horizontal rule section
+    const [main, sourcesRaw] = text.split(/\n+(Sources|References)[:]?|\n+---+\n+/i);
     // Extract intro (first paragraph)
     const introMatch = main.match(/^(.*?)(\n|$)/s);
     const intro = introMatch ? introMatch[1].trim() : '';
