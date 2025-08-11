@@ -172,23 +172,12 @@ export default function Layout() {
               <div className="mt-8">
                 <h3 className="text-sm font-semibold uppercase tracking-wider">Subscribe</h3>
                 <p className="mt-2 text-sm text-purple-100">Get the latest superfood news and updates.</p>
-                <form className="mt-4 sm:flex">
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    className="appearance-none min-w-0 w-full bg-white border border-transparent rounded-md py-2 px-4 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-800 focus:ring-white focus:border-white focus:placeholder-gray-400"
-                    placeholder="Enter your email"
-                  />
-                  <div className="mt-3 rounded-md sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-                    <button
-                      type="submit"
-                      className="w-full bg-purple-800 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-800 focus:ring-white"
-                    >
-                      Subscribe
-                    </button>
-                  </div>
-                </form>
+                <a
+                  href="mailto:flamocauk@gmail.com?subject=Newsletter Subscription - Flamoca&body=Hi,%0D%0A%0D%0AI would like to subscribe to your newsletter.%0D%0A%0D%0AEmail: [Please enter your email address]%0D%0A%0D%0ABest regards"
+                  className="mt-4 inline-flex items-center justify-center bg-purple-800 border border-transparent rounded-md py-2 px-4 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-800 focus:ring-white transition-colors duration-200"
+                >
+                  Subscribe via Email
+                </a>
               </div>
             </div>
           </div>

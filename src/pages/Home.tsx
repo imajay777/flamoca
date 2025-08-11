@@ -156,28 +156,12 @@ const Home: React.FC = () => {
                 </p>
               </div>
               <div className="mt-8 md:mt-0">
-                <form className="sm:flex">
-                  <label htmlFor="email-address" className="sr-only">
-                    Email address
-                  </label>
-                  <input
-                    id="email-address"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="w-full min-w-0 appearance-none rounded-md border-0 bg-white px-4 py-2 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-700"
-                    placeholder="Enter your email"
-                  />
-                  <div className="mt-3 rounded-md sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-                    <button
-                      type="submit"
-                      className="flex w-full items-center justify-center rounded-md bg-purple-900 px-4 py-2 text-base font-medium text-white hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-700"
-                    >
-                      Subscribe
-                    </button>
-                  </div>
-                </form>
+                <a
+                  href="mailto:flamocauk@gmail.com?subject=Newsletter Subscription - Flamoca&body=Hi,%0D%0A%0D%0AI would like to subscribe to your newsletter.%0D%0A%0D%0AEmail: [Please enter your email address]%0D%0A%0D%0ABest regards"
+                  className="inline-flex items-center justify-center rounded-md bg-purple-900 px-6 py-3 text-base font-medium text-white hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-700 transition-colors duration-200"
+                >
+                  Subscribe via Email
+                </a>
               </div>
             </div>
           </div>
