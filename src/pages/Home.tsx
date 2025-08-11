@@ -5,6 +5,7 @@ import { superfoods } from '../data/superfoods';
 import CategoryCard from '../components/CategoryCard';
 import SuperfoodCard from '../components/SuperfoodCard';
 import AIResearchSearch from '../components/AIResearchSearch';
+import FoodSearch from '../components/FoodSearch';
 
 const Home: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -43,6 +44,49 @@ const Home: React.FC = () => {
   return (
     <div>
       <AIResearchSearch />
+      
+      {/* Nutrition Tracking CTA */}
+      <section className="py-16 bg-gradient-to-r from-purple-600 to-blue-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Track Your Daily Nutrition
+          </h2>
+          <p className="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
+            Log your meals, monitor your macros, and achieve your health goals with our comprehensive nutrition tracking platform.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/nutrition"
+              className="inline-flex items-center px-8 py-3 border border-transparent text-lg font-medium rounded-md text-purple-700 bg-white hover:bg-purple-50 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Start Tracking
+            </Link>
+            <div className="text-white text-sm">
+              <div className="flex items-center justify-center space-x-6">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                  <span>Calorie Counting</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                  <span>Macro Tracking</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+                  <span>Meal Planning</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Food Database Search */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FoodSearch />
+        </div>
+      </section>
       
       {/* Hero Section */}
       <section className="relative bg-purple-600 py-20 sm:py-24">

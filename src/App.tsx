@@ -11,6 +11,7 @@ const CategoryDetail = lazy(() => import('./pages/CategoryDetail'));
 const Superfoods = lazy(() => import('./pages/Superfoods'));
 const SuperfoodDetail = lazy(() => import('./pages/SuperfoodDetail'));
 const About = lazy(() => import('./pages/About'));
+const Nutrition = lazy(() => import('./pages/Nutrition'));
 
 export function App() {
   const location = useLocation();
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/superfoods" element={<Superfoods />} />
           <Route path="/superfood/:id" element={<SuperfoodDetail />} />
           <Route path="/about" element={<About />} />
+          <Route path="/nutrition" element={<Nutrition />} />
           <Route path="*" element={<Home />} />
         </Route>
       </Routes>

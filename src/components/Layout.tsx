@@ -72,6 +72,12 @@ export default function Layout() {
                 Superfoods
               </Link>
               <Link
+                to="/nutrition"
+                className={`px-3 py-2 text-base font-medium ${location.pathname === '/nutrition' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800 rounded-md`}
+              >
+                Nutrition Tracker
+              </Link>
+              <Link
                 to="/about"
                 className={`px-3 py-2 text-base font-medium ${location.pathname === '/about' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800 rounded-md`}
               >
@@ -122,6 +128,13 @@ export default function Layout() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Superfoods
+              </Link>
+              <Link
+                to="/nutrition"
+                className={`block px-3 py-2 text-base font-medium ${location.pathname === '/nutrition' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Nutrition Tracker
               </Link>
               <Link
                 to="/about"
