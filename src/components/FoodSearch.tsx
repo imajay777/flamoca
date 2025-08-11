@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FoodItem } from '../types';
-import { foods, searchFoods } from '../data/foods';
+import { searchFoods } from '../data/foods';
 
 interface FoodSearchProps {
   className?: string;
