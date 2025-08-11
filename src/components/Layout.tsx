@@ -1,99 +1,107 @@
-import { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Facebook, Instagram, Menu, Twitter, X } from 'lucide-react';
-import { useState } from 'react';
-import { logoUrl } from '../assets/logo.ts'; // Import the logo URL from our centralized file
+import logoUrl from '../assets/logo.png';
+import { Instagram, Twitter, Facebook } from 'lucide-react';
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState('');
   const location = useLocation();
-  
-  useEffect(() => {
-    // Load Inter font
-    const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-    
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubscribing(true);
+    setSubscriptionMessage('');
+
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubscriptionMessage('Thank you for subscribing!');
+        setEmail('');
+      } else {
+        setSubscriptionMessage(data.error || 'Subscription failed. Please try again.');
+      }
+    } catch (error) {
+      setSubscriptionMessage('Network error. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ 
-      fontFamily: 'Poppins, sans-serif',
-      backgroundColor: '#f9f6f2' 
-    }}>
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex-shrink-0">
-              <Link to="/" className="flex items-center">
-                <img className="h-28 w-auto" src={logoUrl} alt="Flamoca" />
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link to="/" className="flex-shrink-0">
+                <img className="h-12 w-auto" src={logoUrl} alt="Flamoca" />
               </Link>
             </div>
             
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              <Link 
-                to="/" 
-                className={`${location.pathname === '/' ? 'text-purple-600' : 'text-gray-700'} hover:text-purple-800 px-3 py-2 text-sm font-medium`}
+            <div className="hidden md:flex md:items-center md:space-x-8">
+              <Link
+                to="/"
+                className={`px-3 py-2 text-base font-medium ${location.pathname === '/' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800 rounded-md`}
               >
                 Home
               </Link>
-              <Link 
-                to="/categories" 
-                className={`${location.pathname === '/categories' ? 'text-purple-600' : 'text-gray-700'} hover:text-purple-800 px-3 py-2 text-sm font-medium`}
+              <Link
+                to="/categories"
+                className={`px-3 py-2 text-base font-medium ${location.pathname === '/categories' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800 rounded-md`}
               >
                 Categories
               </Link>
-              <Link 
-                to="/superfoods" 
-                className={`${location.pathname === '/superfoods' ? 'text-purple-600' : 'text-gray-700'} hover:text-purple-800 px-3 py-2 text-sm font-medium`}
+              <Link
+                to="/superfoods"
+                className={`px-3 py-2 text-base font-medium ${location.pathname === '/superfoods' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800 rounded-md`}
               >
                 Superfoods
               </Link>
-              <Link 
-                to="/about" 
-                className={`${location.pathname === '/about' ? 'text-purple-600' : 'text-gray-700'} hover:text-purple-800 px-3 py-2 text-sm font-medium`}
+              <Link
+                to="/about"
+                className={`px-3 py-2 text-base font-medium ${location.pathname === '/about' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800 rounded-md`}
               >
                 About Us
               </Link>
-            </nav>
-            
+            </div>
+
             {/* Mobile menu button */}
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center">
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(true)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-purple-600 hover:text-purple-800 hover:bg-gray-100"
+                className="text-gray-700 hover:text-purple-600 focus:outline-none focus:text-purple-600"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <span className="sr-only">Open main menu</span>
-                <Menu className="block h-6 w-6" aria-hidden="true" />
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {mobileMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
               </button>
             </div>
           </div>
-        </div>
-        
-        {/* Mobile menu, show/hide based on menu state */}
+        </nav>
+
+        {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-40 bg-white">
-            <div className="p-4 flex justify-between items-center">
-              <Link to="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
-                <img className="h-24 w-auto" src={logoUrl} alt="Flamoca" />
-              </Link>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-purple-600"
-              >
-                <span className="sr-only">Close menu</span>
-                <X className="block h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
               <Link
                 to="/"
                 className={`block px-3 py-2 text-base font-medium ${location.pathname === '/' ? 'text-purple-600' : 'text-gray-700'} hover:bg-gray-100 hover:text-purple-800`}
@@ -172,12 +180,32 @@ export default function Layout() {
               <div className="mt-8">
                 <h3 className="text-sm font-semibold uppercase tracking-wider">Subscribe</h3>
                 <p className="mt-2 text-sm text-purple-100">Get the latest superfood news and updates.</p>
-                <a
-                  href="mailto:flamocauk@gmail.com?subject=Newsletter Subscription - Flamoca&body=Hi,%0D%0A%0D%0AI would like to subscribe to your newsletter.%0D%0A%0D%0AEmail: [Please enter your email address]%0D%0A%0D%0ABest regards"
-                  className="mt-4 inline-flex items-center justify-center bg-purple-800 border border-transparent rounded-md py-2 px-4 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-800 focus:ring-white transition-colors duration-200"
-                >
-                  Subscribe via Email
-                </a>
+                <form onSubmit={handleSubscribe} className="mt-4 sm:flex">
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="appearance-none min-w-0 w-full bg-white border border-transparent rounded-md py-2 px-4 text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-800 focus:ring-white focus:border-white focus:placeholder-gray-400"
+                    placeholder="Enter your email"
+                  />
+                  <div className="mt-3 rounded-md sm:mt-0 sm:ml-3 sm:flex-shrink-0">
+                    <button
+                      type="submit"
+                      disabled={isSubscribing}
+                      className="w-full bg-purple-800 border border-transparent rounded-md py-2 px-4 flex items-center justify-center text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-800 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubscribing ? 'Subscribing...' : 'Subscribe'}
+                    </button>
+                  </div>
+                </form>
+                {subscriptionMessage && (
+                  <div className={`mt-3 text-sm ${subscriptionMessage.includes('Thank you') ? 'text-green-200' : 'text-red-200'}`}>
+                    {subscriptionMessage}
+                  </div>
+                )}
               </div>
             </div>
           </div>
