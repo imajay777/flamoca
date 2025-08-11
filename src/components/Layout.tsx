@@ -47,7 +47,7 @@ export default function Layout() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex-shrink-0">
-                <img className="h-12 w-auto" src={logoUrl} alt="Flamoca" />
+                <img className="h-16 w-auto" src={logoUrl} alt="Flamoca" />
               </Link>
             </div>
             
