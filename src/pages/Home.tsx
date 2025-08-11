@@ -46,37 +46,73 @@ const Home: React.FC = () => {
       <AIResearchSearch />
       
       {/* Nutrition Tracking CTA */}
-      <section className="py-16 bg-gradient-to-r from-purple-600 to-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Track Your Daily Nutrition
-          </h2>
-          <p className="text-xl text-purple-100 mb-8 max-w-3xl mx-auto">
-            Log your meals, monitor your macros, and achieve your health goals with our comprehensive nutrition tracking platform.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <section className="py-20 bg-gradient-to-br from-purple-600 via-purple-700 to-blue-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h2 className="text-4xl font-bold text-white mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Track Your Daily Nutrition
+            </h2>
+            <p className="text-xl text-purple-100 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Log your meals, monitor your macros, and achieve your health goals with our comprehensive nutrition tracking platform.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
             <Link
               to="/nutrition"
-              className="inline-flex items-center px-8 py-3 border border-transparent text-lg font-medium rounded-md text-purple-700 bg-white hover:bg-purple-50 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="group inline-flex items-center px-8 py-4 border-2 border-white text-lg font-semibold rounded-full text-white bg-white/10 backdrop-blur-sm hover:bg-white hover:text-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
-              Start Tracking
+              <svg className="w-5 h-5 mr-2 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Start Tracking Now
             </Link>
-            <div className="text-white text-sm">
-              <div className="flex items-center justify-center space-x-6">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  <span>Calorie Counting</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                  <span>Macro Tracking</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
-                  <span>Meal Planning</span>
-                </div>
+          </div>
+          
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-center w-12 h-12 bg-green-400/20 rounded-lg mb-4 mx-auto">
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
               </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Calorie Counting</h3>
+              <p className="text-purple-100 text-sm">Accurate tracking with our extensive food database</p>
             </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-400/20 rounded-lg mb-4 mx-auto">
+                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Macro Tracking</h3>
+              <p className="text-purple-100 text-sm">Monitor protein, carbs, and fat with precision</p>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-center w-12 h-12 bg-yellow-400/20 rounded-lg mb-4 mx-auto">
+                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Meal Planning</h3>
+              <p className="text-purple-100 text-sm">Plan ahead and stay organized with smart insights</p>
+            </div>
+          </div>
+          
+          {/* Additional Info */}
+          <div className="mt-12 text-center">
+            <p className="text-purple-200 text-sm">
+              ✨ Personalized goals • 📊 Progress tracking • 🎯 Smart insights
+            </p>
           </div>
         </div>
       </section>

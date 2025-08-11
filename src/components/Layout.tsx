@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import logoUrl from '../assets/logo.png';
+import { logoUrl } from '../assets/logo';
 import { Instagram, Twitter, Facebook } from 'lucide-react';
 
 export default function Layout() {
