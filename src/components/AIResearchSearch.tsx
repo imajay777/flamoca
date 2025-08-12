@@ -25,11 +25,62 @@ const AIResearchSearch: React.FC = () => {
 
   // Parse Gemini's research-assistant style output
   function parseResearchOutput(text: string) {
-    // Split out the Sources, References, or Markdown horizontal rule section
-    const [main, sourcesRaw] = text.split(/\n+(Sources|References)[:]?|\n+---+\n+/i);
+    console.log('Raw Gemini response:', text);
+    
+    // Try multiple patterns to split out the Sources/References section
+    let main, sourcesRaw;
+    
+    // Pattern 1: Look for "Sources:" or "References:" headers
+    const sourcesPattern1 = /\n+(Sources|References)[:]?\s*\n+/i;
+    if (sourcesPattern1.test(text)) {
+      [main, sourcesRaw] = text.split(sourcesPattern1);
+      console.log('Pattern 1 matched - Sources found with header');
+    }
+    // Pattern 2: Look for Markdown horizontal rules (---)
+    else if (text.includes('\n---\n')) {
+      [main, sourcesRaw] = text.split(/\n+---+\n+/);
+      console.log('Pattern 2 matched - Sources found with horizontal rule');
+    }
+    // Pattern 3: Look for numbered lists that might be sources
+    else if (/\n\s*\d+\.\s/.test(text)) {
+      const lines = text.split('\n');
+      const sourceStartIndex = lines.findIndex(line => /^\s*\d+\.\s/.test(line));
+      if (sourceStartIndex !== -1) {
+        main = lines.slice(0, sourceStartIndex).join('\n');
+        sourcesRaw = lines.slice(sourceStartIndex).join('\n');
+        console.log('Pattern 3 matched - Sources found with numbered list');
+      } else {
+        main = text;
+        sourcesRaw = '';
+      }
+    }
+    // Pattern 4: Look for [1], [2] style citations at the end
+    else if (/\n\s*\[\d+\]/.test(text)) {
+      const citationMatch = text.match(/\n\s*\[\d+\]/);
+      if (citationMatch) {
+        const splitIndex = text.lastIndexOf(citationMatch[0]);
+        main = text.substring(0, splitIndex);
+        sourcesRaw = text.substring(splitIndex);
+        console.log('Pattern 4 matched - Sources found with citations at end');
+      } else {
+        main = text;
+        sourcesRaw = '';
+      }
+    }
+    // Fallback: no sources found
+    else {
+      main = text;
+      sourcesRaw = '';
+      console.log('No pattern matched - no sources found');
+    }
+
+    console.log('Main content:', main);
+    console.log('Sources raw:', sourcesRaw);
+
     // Extract intro (first paragraph)
     const introMatch = main.match(/^(.*?)(\n|$)/s);
     const intro = introMatch ? introMatch[1].trim() : '';
+    
     // Extract bullet points (lines starting with * or -)
     const bulletRegex = /^(?:\*|-)[ \t]+(.+)/gm;
     const bullets = [];
@@ -37,14 +88,19 @@ const AIResearchSearch: React.FC = () => {
     while ((m = bulletRegex.exec(main))) {
       bullets.push(m[1]);
     }
+    
     // Extract precautions (look for a line starting with 'Precautions:' or similar)
     const precautionsMatch = main.match(/Precautions?:\s*(.*)/i);
     const precautions = precautionsMatch ? precautionsMatch[1].trim() : '';
-    // Parse sources
+    
+    // Parse sources with improved logic
     let sources: { idx: string; text: string }[] = [];
     if (sourcesRaw) {
+      // Clean up the sources text
+      const cleanSources = sourcesRaw.trim();
+      
       // Try [1] style first
-      sources = sourcesRaw
+      sources = cleanSources
         .split(/\n+/)
         .map(line => line.trim())
         .filter(Boolean)
@@ -53,9 +109,10 @@ const AIResearchSearch: React.FC = () => {
           return idxMatch ? { idx: idxMatch[1], text: line } : null;
         })
         .filter(Boolean) as { idx: string; text: string }[];
+      
       // If no [1] style found, try Markdown numbered list (1. ...)
       if (sources.length === 0) {
-        sources = sourcesRaw
+        sources = cleanSources
           .split(/\n+/)
           .map(line => line.trim())
           .filter(line => /^\d+\.\s+/.test(line))
@@ -65,7 +122,22 @@ const AIResearchSearch: React.FC = () => {
           })
           .filter(Boolean) as { idx: string; text: string }[];
       }
+      
+      // If still no sources, try to extract from the main text
+      if (sources.length === 0) {
+        const citationMatches = main.match(/\[(\d+)\]/g);
+        if (citationMatches) {
+          const uniqueCitations = [...new Set(citationMatches.map(m => m.replace(/[\[\]]/g, '')))];
+          sources = uniqueCitations.map(idx => ({
+            idx,
+            text: `[${idx}] Source ${idx} - details unavailable`
+          }));
+        }
+      }
     }
+    
+    console.log('Final parsed sources:', sources);
+    
     return { intro, bullets, precautions, sources, main };
   }
 
