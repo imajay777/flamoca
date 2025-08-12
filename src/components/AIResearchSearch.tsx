@@ -148,20 +148,33 @@ const AIResearchSearch: React.FC = () => {
       if (match) {
         const idx = match[1];
         const source = sources.find(s => s.idx === idx);
-        return source ? (
-          <sup key={i} className="mx-0.5">
-            <a
-              href={extractUrlFromSource(source.text) || '#sources'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              [{idx}]
-            </a>
-          </sup>
-        ) : (
-          <sup key={i}>[{idx}]</sup>
-        );
+        if (source) {
+          const url = extractUrlFromSource(source.text);
+          // Only create a link if we have a valid URL
+          if (url && url !== '#sources') {
+            return (
+              <sup key={i} className="mx-0.5">
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  [{idx}]
+                </a>
+              </sup>
+            );
+          } else {
+            // No valid URL, just show the citation number
+            return (
+              <sup key={i} className="text-gray-500">
+                [{idx}]
+              </sup>
+            );
+          }
+        } else {
+          return <sup key={i}>[{idx}]</sup>;
+        }
       }
       return part;
     });
@@ -169,11 +182,45 @@ const AIResearchSearch: React.FC = () => {
 
   // Try to extract a URL or DOI from a source line
   function extractUrlFromSource(source: string) {
-    const urlMatch = source.match(/https?:\/\/\S+/);
-    if (urlMatch) return urlMatch[0];
+    // Skip if this is a fallback source
+    if (source.includes('details unavailable') || source.includes('Source ')) {
+      return '';
+    }
+    
+    // Try to find a valid URL
+    const urlMatch = source.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) {
+      const url = urlMatch[0];
+      // Validate URL format
+      try {
+        new URL(url);
+        return url;
+      } catch {
+        return '';
+      }
+    }
+    
     // Try DOI
     const doiMatch = source.match(/doi:\s*(10\.\d{4,9}\/[-._;()\/:A-Z0-9]+)/i);
-    if (doiMatch) return `https://doi.org/${doiMatch[1]}`;
+    if (doiMatch) {
+      return `https://doi.org/${doiMatch[1]}`;
+    }
+    
+    // Try PubMed ID
+    const pubmedMatch = source.match(/pubmed[:\s]+(\d+)/i);
+    if (pubmedMatch) {
+      return `https://pubmed.ncbi.nlm.nih.gov/${pubmedMatch[1]}/`;
+    }
+    
+    // Try Google Scholar search
+    const titleMatch = source.match(/^\[\d+\]\s*(.+?)(?:\s*https?:\/\/|$)/);
+    if (titleMatch) {
+      const title = titleMatch[1].trim();
+      if (title && !title.includes('details unavailable')) {
+        return `https://scholar.google.com/scholar?q=${encodeURIComponent(title)}`;
+      }
+    }
+    
     return '';
   }
 
@@ -339,6 +386,8 @@ const AIResearchSearch: React.FC = () => {
               <ul className="list-decimal pl-6 text-gray-800 space-y-2">
                 {parsed.sources.map((src, idx) => {
                   const details = parseSourceDetails(src.text);
+                  const hasValidUrl = details.url && details.url !== '#sources';
+                  
                   return (
                     <li key={idx} className="break-words flex flex-col gap-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -352,7 +401,7 @@ const AIResearchSearch: React.FC = () => {
                         {isRecent(details.year) && (
                           <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full ml-1">Recent</span>
                         )}
-                        {details.url && (
+                        {hasValidUrl ? (
                           <a
                             href={details.url}
                             target="_blank"
@@ -362,10 +411,19 @@ const AIResearchSearch: React.FC = () => {
                             <span>Link</span>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 015.656 5.656l-3.535 3.535a4 4 0 01-5.656-5.656m1.414-1.414a4 4 0 015.656 5.656" /></svg>
                           </a>
+                        ) : (
+                          <span className="text-gray-400 text-sm px-2 py-1 bg-gray-100 rounded">
+                            No direct link available
+                          </span>
                         )}
                       </div>
                       {!details.title && (
                         <span className="text-gray-400 text-sm">(details unavailable)</span>
+                      )}
+                      {!hasValidUrl && details.title && !details.title.includes('details unavailable') && (
+                        <div className="text-sm text-gray-500 mt-1">
+                          💡 Try searching for "{details.title}" on Google Scholar or PubMed for more information.
+                        </div>
                       )}
                     </li>
                   );
