@@ -200,10 +200,14 @@ const AIResearchSearch: React.FC = () => {
       }
     }
     
-    // Try DOI
+    // Try DOI - improved regex to exclude trailing brackets and punctuation
     const doiMatch = source.match(/doi:\s*(10\.\d{4,9}\/[-._;()\/:A-Z0-9]+)/i);
     if (doiMatch) {
-      return `https://doi.org/${doiMatch[1]}`;
+      // Clean the DOI by removing trailing brackets and punctuation
+      let cleanDoi = doiMatch[1];
+      // Remove trailing brackets, parentheses, and other punctuation
+      cleanDoi = cleanDoi.replace(/[)\].,;:!?]+$/, '');
+      return `https://doi.org/${cleanDoi}`;
     }
     
     // Try PubMed ID
